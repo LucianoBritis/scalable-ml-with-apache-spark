@@ -37,7 +37,11 @@
 
 file_path = f"{DA.paths.datasets}/airbnb/sf-listings/sf-listings-2019-03-06.csv"
 
-raw_df = spark.read.csv(file_path, header="true", inferSchema="true", multiLine="true", escape='"')
+raw_df = spark.read.csv(file_path, 
+                        header="true", 
+                        inferSchema="true", 
+                        multiLine="true", 
+                        escape='"')
 
 display(raw_df)
 
@@ -217,6 +221,10 @@ display(min_nights_df)
 
 # COMMAND ----------
 
+#print(min_nights_df.na.drop().count())
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="25a35390-d716-43ad-8f51-7e7690e1c913"/>
 # MAGIC 
 # MAGIC 
@@ -312,10 +320,36 @@ display(doubles_df.describe())
 
 from pyspark.ml.feature import Imputer
 
+df = spark.createDataFrame([
+    (1.0, float("nan")),
+    (2.0, float("nan")),
+    (float("nan"), 3.0),
+    (4.0, 4.0),
+    (5.0, 5.0)
+], ["a", "b"])
+
+imputer = Imputer(inputCols=["a", "b"], outputCols=["out_a", "out_b"])
+model = imputer.fit(df)
+
+model.transform(df).show()
+
+# COMMAND ----------
+
+print(imputer.explainParams())
+
+# COMMAND ----------
+
+from pyspark.ml.feature import Imputer
+
 imputer = Imputer(strategy="median", inputCols=impute_cols, outputCols=impute_cols)
 
 imputer_model = imputer.fit(doubles_df)
 imputed_df = imputer_model.transform(doubles_df)
+
+# COMMAND ----------
+
+print(imputed_df.count())
+print(imputed_df.na.drop().count())
 
 # COMMAND ----------
 
