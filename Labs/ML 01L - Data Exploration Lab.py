@@ -66,8 +66,13 @@ display(train_df.select("price"))
 # COMMAND ----------
 
 # TODO
+from pyspark.sql.functions import log
+display(train_df.select(log('price')))
 
-display(<FILL_IN>)
+# COMMAND ----------
+
+from pyspark.sql.functions import log10
+display(train_df.select(log10('price')))
 
 # COMMAND ----------
 
@@ -83,7 +88,7 @@ display(<FILL_IN>)
 
 # COMMAND ----------
 
-display(train_df)
+display(train_df.select("price","bedrooms","accommodates"))
 
 # COMMAND ----------
 
@@ -108,7 +113,7 @@ display(train_df.groupBy("room_type").count())
 # COMMAND ----------
 
 # TODO
-display(<FILL_IN>)
+display(train_df.groupBy("neighbourhood_cleansed").count())
 
 # COMMAND ----------
 
@@ -180,7 +185,21 @@ displayHTML("""
 
 # COMMAND ----------
 
-# TODO
+from pyspark.sql.functions import avg 
+average = train_df.select(avg("price")).first()[0]
+print(average)
+
+# COMMAND ----------
+
+from pyspark.sql.functions import median 
+median = train_df.select(median("price")).first()[0]
+print(median)
+
+# COMMAND ----------
+
+from pyspark.sql.functions import lit 
+
+pred_df = test_df.withColumn("avgPrediction", lit(average)).withColumn("medianPrediction", lit(median))
 
 # COMMAND ----------
 
@@ -203,6 +222,16 @@ print(f"The RMSE for predicting the average price is: {regression_mean_evaluator
 
 regressionMedianEvaluator = RegressionEvaluator(predictionCol="medianPrediction", labelCol="price", metricName="rmse")
 print(f"The RMSE for predicting the median price is: {regressionMedianEvaluator.evaluate(pred_df)}")
+
+# COMMAND ----------
+
+from pyspark.ml.evaluation import RegressionEvaluator
+
+regression_mean_evaluator = RegressionEvaluator(predictionCol="avgPrediction", labelCol="price", metricName="r2")
+print(f"The R2 for predicting the average price is: {regression_mean_evaluator.evaluate(pred_df)}")
+
+regressionMedianEvaluator = RegressionEvaluator(predictionCol="medianPrediction", labelCol="price", metricName="r2")
+print(f"The R2 for predicting the median price is: {regressionMedianEvaluator.evaluate(pred_df)}")
 
 # COMMAND ----------
 
