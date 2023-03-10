@@ -104,7 +104,7 @@ from pyspark.ml.regression import LinearRegression
 lr = LinearRegression(featuresCol="bedrooms", labelCol="price")
 
 # Uncomment when running
-# lr_model = lr.fit(train_df)
+lr_model = lr.fit(train_df)
 
 # COMMAND ----------
 
@@ -150,6 +150,10 @@ print(f"The formula for the linear regression line is y = {m:.2f}x + {b:.2f}")
 
 # COMMAND ----------
 
+lr_model.summary.pValues
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="ae6dfaf9-9164-4dcc-a699-31184c4a962e"/>
 # MAGIC 
 # MAGIC 
@@ -163,6 +167,10 @@ vec_test_df = vec_assembler.transform(test_df)
 pred_df = lr_model.transform(vec_test_df)
 
 pred_df.select("bedrooms", "features", "price", "prediction").show()
+
+# COMMAND ----------
+
+display(pred_df.select("price","prediction"))
 
 # COMMAND ----------
 
@@ -182,6 +190,17 @@ regression_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol=
 
 rmse = regression_evaluator.evaluate(pred_df)
 print(f"RMSE is {rmse}")
+
+# COMMAND ----------
+
+print(regression_evaluator.explainParams())
+
+# COMMAND ----------
+
+regression_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="r2")
+
+r2 = regression_evaluator.evaluate(pred_df)
+print(f"R2 is {r2}")
 
 # COMMAND ----------
 
