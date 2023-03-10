@@ -47,19 +47,30 @@ train_df, test_df = airbnb_df.randomSplit([.8, .2], seed=42)
 
 # COMMAND ----------
 
-# TODO
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import RFormula
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
 
-r_formula = RFormula(<FILL_IN>)
-lr = <FILL_IN>
-pipeline = Pipeline(<FILL_IN>)
-pipeline_model = pipeline.fit(<FILL_IN>)
-pred_df = pipeline_model.transform(<FILL_IN>)
+r_formula = RFormula(formula="price ~ .",
+                     featuresCol="features",
+                     handleInvalid="skip",
+                     labelCol="price")
 
-regression_evaluator = RegressionEvaluator(<FILL_IN>)
+lr = LinearRegression(labelCol="price",)
+
+# COMMAND ----------
+
+print(r_formula.explainParams())
+
+# COMMAND ----------
+
+
+pipeline = Pipeline(stages=[r_formula, lr])
+pipeline_model = pipeline.fit(train_df)
+pred_df = pipeline_model.transform(test_df)
+
+regression_evaluator = RegressionEvaluator(labelCol="price")
 
 rmse = regression_evaluator.setMetricName("rmse").evaluate(pred_df)
 r2 = regression_evaluator.setMetricName("r2").evaluate(pred_df)
@@ -86,14 +97,14 @@ display(train_df.select(log("price")))
 
 # COMMAND ----------
 
-# TODO
 from pyspark.sql.functions import col, log
 
-log_train_df = <FILL_IN>
-log_test_df = <FILL_IN>
+log_train_df = train_df.withColumn("logprice", log("price"))
+log_test_df = test_df.withColumn("logprice", log("price"))
 
-r_formula = RFormula(<FILL_IN>) # Look at handleInvalid
-lr.setLabelCol(<FILL_IN>)
+r_formula = RFormula(formula="logprice ~ . - price", handleInvalid="skip") # Look at handleInvalid
+
+lr.setLabelCol("logprice")
 pipeline = Pipeline(stages=[r_formula, lr])
 pipeline_model = pipeline.fit(log_train_df)
 pred_df = pipeline_model.transform(log_test_df)
@@ -110,8 +121,8 @@ pred_df = pipeline_model.transform(log_test_df)
 
 # COMMAND ----------
 
-# TODO
-exp_df = <FILL_IN>
+from pyspark.sql.functions import exp
+exp_df = pred_df.withColumn("prediction", exp("prediction"))
 
 rmse = regression_evaluator.setMetricName("rmse").evaluate(exp_df)
 r2 = regression_evaluator.setMetricName("r2").evaluate(exp_df)
