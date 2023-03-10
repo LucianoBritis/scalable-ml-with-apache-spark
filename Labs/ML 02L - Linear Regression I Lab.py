@@ -36,21 +36,25 @@ train_df, test_df = airbnb_df.randomSplit([.8, .2], seed=42)
 
 # COMMAND ----------
 
-# TODO
-
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.regression import LinearRegression
 
-vec_assembler = # FILL_IN
+vec_assembler = VectorAssembler(inputCols=["bedrooms", "bathrooms", "bathrooms_na", "minimum_nights", "number_of_reviews"],
+                               outputCol="features")
 
-lr_model = # FILL_IN
+vec_train_df = vec_assembler.transform(train_df)
+vec_test_df = vec_assembler.transform(test_df)
 
-pred_df = # FILL_IN
+lr_model = LinearRegression(labelCol="price").fit(vec_train_df)
+
+# COMMAND ----------
+
+pred_df = lr_model.transform(vec_test_df)
 
 regression_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="rmse")
-rmse = # FILL_IN
-r2 = # FILL_IN
+rmse = regression_evaluator.evaluate(pred_df)
+r2 = regression_evaluator.setMetricName("r2").evaluate(pred_df)
 print(f"RMSE is {rmse}")
 print(f"R2 is {r2}")
 
@@ -68,6 +72,13 @@ for col, coef in zip(vec_assembler.getInputCols(), lr_model.coefficients):
     print(col, coef)
   
 print(f"intercept: {lr_model.intercept}")
+
+# COMMAND ----------
+
+m = lr_model.coefficients[0]
+b = lr_model.intercept
+
+print(f"The formula for the linear regression line is y = {m:.2f}x + {b:.2f}")
 
 # COMMAND ----------
 
