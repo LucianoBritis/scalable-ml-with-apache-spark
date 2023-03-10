@@ -129,6 +129,10 @@ pipeline_model = pipeline.fit(train_df)
 
 # COMMAND ----------
 
+pipeline_model.stages[-1].coefficients
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="c7420125-24be-464f-b609-1bb4e765d4ff"/>
 # MAGIC 
 # MAGIC 
@@ -172,6 +176,10 @@ saved_pipeline_model = PipelineModel.load(DA.paths.working_dir)
 pred_df = saved_pipeline_model.transform(test_df)
 
 display(pred_df.select("features", "price", "prediction"))
+
+# COMMAND ----------
+
+display(pred_df.select("price","prediction"))
 
 # COMMAND ----------
 
