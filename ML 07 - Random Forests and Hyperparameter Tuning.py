@@ -82,10 +82,10 @@ print(rf.explainParams())
 
 from pyspark.ml.tuning import ParamGridBuilder
 
-param_grid = (ParamGridBuilder()
-              .addGrid(rf.maxDepth, [2, 5])
-              .addGrid(rf.numTrees, [5, 10])
-              .build())
+param_grid = (ParamGridBuilder() 
+    .addGrid(rf.maxDepth, [2, 5]) 
+    .addGrid(rf.numTrees, [5, 10]) 
+    .build())
 
 # COMMAND ----------
 
@@ -121,8 +121,11 @@ from pyspark.ml.tuning import CrossValidator
 
 evaluator = RegressionEvaluator(labelCol="price", predictionCol="prediction")
 
-cv = CrossValidator(estimator=pipeline, evaluator=evaluator, estimatorParamMaps=param_grid, 
-                    numFolds=3, seed=42)
+cv = CrossValidator(estimator=pipeline, 
+                    evaluator=evaluator, 
+                    estimatorParamMaps=param_grid, 
+                    numFolds=3, 
+                    seed=42)
 
 # COMMAND ----------
 
@@ -150,8 +153,11 @@ cv_model = cv.fit(train_df)
 
 # COMMAND ----------
 
-cv = CrossValidator(estimator=rf, evaluator=evaluator, estimatorParamMaps=param_grid, 
-                    numFolds=3, seed=42)
+cv = CrossValidator(estimator=rf, 
+                    evaluator=evaluator, 
+                    estimatorParamMaps=param_grid, 
+                    numFolds=3, 
+                    seed=42)
 
 stages_with_cv = [string_indexer, vec_assembler, cv]
 pipeline = Pipeline(stages=stages_with_cv)
