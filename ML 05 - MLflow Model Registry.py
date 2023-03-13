@@ -358,6 +358,10 @@ new_model_version = max([model_version_info.version for model_version_info in mo
 
 # COMMAND ----------
 
+f" Model version number: {new_model_version}"
+
+# COMMAND ----------
+
 # MAGIC %md <i18n value="4fb5d7c9-b0c0-49d5-a313-ac95da7e0f91"/>
 # MAGIC 
 # MAGIC 
@@ -385,7 +389,7 @@ client.update_model_version(
 client.transition_model_version_stage(
     name=model_name,
     version=new_model_version,
-    stage="Production", 
+    stage="PRODUCTION", 
     archive_existing_versions=True # Archive existing model in production 
 )
 
