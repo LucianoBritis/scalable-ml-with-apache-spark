@@ -109,7 +109,24 @@ stages = [string_indexer, vec_assembler, dt]
 pipeline = Pipeline(stages=stages)
 
 # Uncomment to perform fit
-# pipeline_model = pipeline.fit(train_df)
+pipeline_model = pipeline.fit(train_df)
+
+# COMMAND ----------
+
+assembler_inputs
+
+# COMMAND ----------
+
+bins_count = train_df.groupBy("neighbourhood_cleansed").count().count()
+print(bins_count)
+
+# COMMAND ----------
+
+print(dt.explainParams())
+
+# COMMAND ----------
+
+f"maxBins: Max number of bins for discretizing continuous features.  Must be >=2 and >= number of categories for any categorical feature. (default: 32)"
 
 # COMMAND ----------
 
@@ -150,7 +167,7 @@ pipeline = Pipeline(stages=stages)
 
 # COMMAND ----------
 
-dt.setMaxBins(40)
+dt.setMaxBins(bins_count)
 
 # COMMAND ----------
 
@@ -198,7 +215,7 @@ dt_model.featureImportances
 import pandas as pd
 
 features_df = pd.DataFrame(list(zip(vec_assembler.getInputCols(), dt_model.featureImportances)), columns=["feature", "importance"])
-features_df
+features_df.sort_values(["importance"]).tail(5)
 
 # COMMAND ----------
 
@@ -245,6 +262,10 @@ print(top_features)
 pred_df = pipeline_model.transform(test_df)
 
 display(pred_df.select("features", "price", "prediction").orderBy("price", ascending=False))
+
+# COMMAND ----------
+
+display(pred_df.select("price", "prediction").filter("prediction < 2000"))
 
 # COMMAND ----------
 
