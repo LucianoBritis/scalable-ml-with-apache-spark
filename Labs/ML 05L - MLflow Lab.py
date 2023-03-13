@@ -60,6 +60,10 @@ train_df, test_df = airbnb_df.randomSplit([.8, .2], seed=42)
 
 # COMMAND ----------
 
+display(airbnb_df)
+
+# COMMAND ----------
+
 train_delta_path = f"{DA.paths.working_dir}/train.delta"
 test_delta_path = f"{DA.paths.working_dir}/test.delta"
 
@@ -81,10 +85,9 @@ test_df.write.mode("overwrite").format("delta").save(test_delta_path)
 
 # COMMAND ----------
 
-# TODO
 data_version = 0
-train_delta = <FILL_IN>
-test_delta = <FILL_IN>
+train_delta = spark.read.format("delta").option("versionAsOf",data_version).load(train_delta_path)
+test_delta = spark.read.format("delta").option("versionAsOf",data_version).load(test_delta_path)
 
 # COMMAND ----------
 
@@ -123,7 +126,6 @@ display(spark.sql(f"DESCRIBE HISTORY delta.`{train_delta_path}`"))
 
 # COMMAND ----------
 
-# TODO
 import mlflow
 import mlflow.spark
 from pyspark.ml.regression import LinearRegression
@@ -134,9 +136,10 @@ from pyspark.ml.feature import RFormula
 with mlflow.start_run(run_name="lr_model") as run:
     # Log parameters
     mlflow.log_param("data_path", train_delta_path)  
-    # TODO: Log label: price-all-features
-    # TODO: Log data_version: data_version
-
+    # Log label: price-all-features
+    mlflow.log_param("label", "price-all-features")
+    # Log data_version: data_version
+    mlflow.log_param("data_version", data_version) # init version 0
 
     # Create pipeline
     r_formula = RFormula(formula="price ~ .", featuresCol="features", labelCol="price", handleInvalid="skip")
@@ -145,8 +148,8 @@ with mlflow.start_run(run_name="lr_model") as run:
     model = pipeline.fit(train_delta)
 
     # Log pipeline
-    # TODO: Log model: model
-
+    # Log model: model
+    mlflow.spark.log_model(model, "model") 
     # Create predictions and metrics
     pred_df = model.transform(test_delta)
     regression_evaluator = RegressionEvaluator(labelCol="price", predictionCol="prediction")
@@ -154,9 +157,10 @@ with mlflow.start_run(run_name="lr_model") as run:
     r2 = regression_evaluator.setMetricName("r2").evaluate(pred_df)
 
     # Log metrics
-    # TODO: Log RMSE
-    # TODO: Log R2
-
+    # Log RMSE
+    mlflow.log_metric("rmse", rmse)
+    # Log R2
+    mlflow.log_metric("r2", r2)
     run_id = run.info.run_id
 
 # COMMAND ----------
@@ -236,9 +240,12 @@ wait_for_model(model_name, 1, stage="Staging")
 
 # COMMAND ----------
 
-# TODO
+print(model_name)
+
+# COMMAND ----------
+
 client.update_registered_model(
-  <FILL_IN>
+  name=model_name, description="This model uses Airbnb data and rformula to make a spark linear regression"
 )
 
 # COMMAND ----------
@@ -278,9 +285,8 @@ test_new = test_delta.withColumn("log_price", log(col("price")))
 
 # COMMAND ----------
 
-# TODO
-train_new.write.<FILL_IN>
-test_new.write.<FILL_IN>
+train_new.write.mode("overwrite").option("mergeSchema","true").save(train_delta_path)
+test_new.write.mode("overwrite").option("mergeSchema","true").save(test_delta_path)
 
 # COMMAND ----------
 
@@ -373,17 +379,16 @@ with mlflow.start_run(run_name="lr_log_model") as run:
 
 # COMMAND ----------
 
-# TODO
 data_version = 0
 
-mlflow.search_runs(<FILL_IN>)
+mlflow.search_runs(filter_string=f"params.data_version= {data_version}")
 
 # COMMAND ----------
 
 # TODO
 data_version = 1
 
-mlflow.search_runs(<FILL_IN>)
+mlflow.search_runs(filter_string=f"params.data_version ={data_version}")
 
 # COMMAND ----------
 
@@ -429,10 +434,11 @@ wait_for_model(model_name, new_model_version)
 
 # COMMAND ----------
 
-# TODO
 # Move Model into Production
 client.transition_model_version_stage(
-  <FILL_IN>
+    name=model_name,
+    version = new_model_version,
+    stage="Production"
 )
 
 # COMMAND ----------
