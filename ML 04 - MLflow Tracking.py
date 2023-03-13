@@ -243,6 +243,11 @@ client.list_experiments()
 # COMMAND ----------
 
 experiment_id = run.info.experiment_id
+print(experiment_id)
+
+# COMMAND ----------
+
+experiment_id = run.info.experiment_id
 runs_df = mlflow.search_runs(experiment_id)
 
 display(runs_df)
@@ -296,6 +301,10 @@ runs[0].info.run_id
 # MAGIC ### Load Saved Model
 # MAGIC 
 # MAGIC Let's practice <a href="https://www.mlflow.org/docs/latest/python_api/mlflow.spark.html" target="_blank">loading</a> our logged log-normal model.
+
+# COMMAND ----------
+
+"dbfs:/databricks/mlflow-tracking/ba2fc8b8a2124607878fe0934979c09c/b97c000c86a5448fadeb092e3c9c24f1/artifacts/log-model"
 
 # COMMAND ----------
 
