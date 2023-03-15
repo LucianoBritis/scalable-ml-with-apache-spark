@@ -59,7 +59,7 @@ train_df, test_df = airbnb_df.randomSplit([.8, .2], seed=42)
 
 from databricks import automl
 
-summary = automl.regress(train_df, target_col="price", primary_metric="rmse", timeout_minutes=5, max_trials=10)
+summary = automl.regress(train_df, target_col="price", primary_metric="rmse", timeout_minutes=5)
 
 # COMMAND ----------
 
