@@ -92,9 +92,12 @@ vec_assembler = VectorAssembler(inputCols=assembler_inputs, outputCol="features"
 
 # COMMAND ----------
 
-# TODO
+from pyspark.ml.classification import RandomForestClassifier
 
-rf = <FILL_IN>
+# Train a RandomForest model.
+rf = RandomForestClassifier(labelCol="priceClass", 
+                            maxBins = 40,
+                            seed=42)
 
 # COMMAND ----------
 
@@ -116,7 +119,12 @@ rf = <FILL_IN>
 
 # COMMAND ----------
 
-# TODO
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+
+paramGrid = ParamGridBuilder()\
+    .addGrid(rf.maxDepth,[2, 5, 10])\
+    .addGrid(rf.numTrees,[10, 20, 100])\
+    .build()
 
 # COMMAND ----------
 
@@ -134,7 +142,9 @@ rf = <FILL_IN>
 
 # COMMAND ----------
 
-# TODO
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+evaluator = BinaryClassificationEvaluator(labelCol="priceClass", metricName="areaUnderROC")
 
 # COMMAND ----------
 
@@ -150,11 +160,11 @@ rf = <FILL_IN>
 
 # COMMAND ----------
 
-# TODO
-
-from pyspark.ml.tuning import CrossValidator
-
-cv = <FILL_IN>
+cv = CrossValidator(estimator=rf,
+                    estimatorParamMaps=paramGrid,
+                    evaluator=evaluator,
+                    seed=42,
+                    numFolds=3)  # use 3+ folds in practice
 
 # COMMAND ----------
 
@@ -189,7 +199,7 @@ pipeline_model = pipeline.fit(train_df)
 cv_model = pipeline_model.stages[-1]
 rf_model = cv_model.bestModel
 
-# list(zip(cv_model.getEstimatorParamMaps(), cv_model.avgMetrics))
+#list(zip(cv_model.getEstimatorParamMaps(), cv_model.avgMetrics))
 
 print(rf_model.explainParams())
 
@@ -207,7 +217,7 @@ import pandas as pd
 
 pandas_df = pd.DataFrame(list(zip(vec_assembler.getInputCols(), rf_model.featureImportances)), columns=["feature", "importance"])
 top_features = pandas_df.sort_values(["importance"], ascending=False)
-top_features
+top_features.tail(10)
 
 # COMMAND ----------
 
@@ -227,10 +237,8 @@ top_features
 
 # COMMAND ----------
 
-# TODO
-
-pred_df = <FILL_IN>
-area_under_roc = <FILL_IN>
+pred_df = pipeline_model.transform(test_df)
+area_under_roc = evaluator.evaluate(pred_df)
 print(f"Area under ROC is {area_under_roc:.2f}")
 
 # COMMAND ----------
@@ -245,7 +253,7 @@ print(f"Area under ROC is {area_under_roc:.2f}")
 
 # COMMAND ----------
 
-# TODO
+pipeline_model.write().overwrite().save(DA.paths.working_dir)
 
 # COMMAND ----------
 
