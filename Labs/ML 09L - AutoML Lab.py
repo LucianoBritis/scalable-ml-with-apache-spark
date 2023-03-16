@@ -50,6 +50,10 @@ train_df, test_df = airbnb_df.randomSplit([.8, .2], seed=42)
 
 # COMMAND ----------
 
+print(DA.cleaned_username)
+
+# COMMAND ----------
+
 spark.sql(f"CREATE DATABASE IF NOT EXISTS {DA.cleaned_username}")
 train_df.write.mode("overwrite").saveAsTable(f"{DA.cleaned_username}.autoMLTable")
 
