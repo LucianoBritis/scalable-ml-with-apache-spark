@@ -63,7 +63,7 @@ display(covid_df)
 import uuid
 
 spark.sql(f"CREATE DATABASE IF NOT EXISTS {DA.cleaned_username}")
-table_name = f"{DA.cleaned_username}.airbnb_{str(uuid.uuid4())[:6]}"
+table_name = f"{DA.cleaned_username}.covid_{str(uuid.uuid4())[:6]}"
 
 print(table_name)
 
@@ -79,10 +79,9 @@ print(table_name)
 
 # COMMAND ----------
 
-# TODO
 from databricks import feature_store
  
-fs = # FILL_IN
+fs = feature_store.FeatureStoreClient()
 
 # COMMAND ----------
 
@@ -100,10 +99,12 @@ fs = # FILL_IN
 
 # COMMAND ----------
 
-# TODO
+columns = covid_df.columns
+columns.remove("deceased")
+
 @feature_store.feature_table
 def select_features(dataframe):
-    return # FILL_IN
+    return dataframe.select(columns)
 
 covid_features_df = select_features(covid_df)
 display(covid_features_df)
@@ -126,11 +127,11 @@ display(covid_features_df)
 
 # TODO
 fs.create_table(
-    name=#FILL_IN,
-    primary_keys=#FILL_IN,
-    df=#FILL_IN,
-    schema=#FILL_IN,
-    description=#FILL_IN
+    name=table_name,
+    primary_keys=["index"] ,
+    df=covid_features_df,
+    schema=covid_features_df.schema,
+    description="feature store for ML 10 Lab"
 )
 
 # COMMAND ----------
@@ -171,11 +172,10 @@ display(add_df)
 
 # COMMAND ----------
 
-# TODO
 fs.write_table(
-    name=#FILL_IN,
-    df=#FILL_IN,
-    mode=#FILL_IN
+    name=table_name,
+    df=add_df,
+    mode="merge"
 )
 
 # COMMAND ----------
@@ -188,8 +188,7 @@ fs.write_table(
 
 # COMMAND ----------
 
-# TODO
-updated_df = #FILL_IN
+updated_df =fs.read_table(table_name)
 
 display(updated_df)
 

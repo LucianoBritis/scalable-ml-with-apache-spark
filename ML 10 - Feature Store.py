@@ -79,7 +79,7 @@ print(table_name)
 # COMMAND ----------
 
 fs = feature_store.FeatureStoreClient()
-# help(fs.create_table)
+help(fs.create_table)
 
 # COMMAND ----------
 
