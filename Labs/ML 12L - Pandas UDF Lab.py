@@ -84,10 +84,12 @@ spark_df = spark.createDataFrame(df)
 
 # COMMAND ----------
 
-# TODO
+print(f'test view run id:{run.info.run_id}')
 
-model_path = <FILL_IN>
-predict = mlflow.pyfunc.spark_udf(<FILL_IN>)
+# COMMAND ----------
+
+model_path = f"runs:/{run.info.run_id}/model"
+predict = mlflow.pyfunc.spark_udf(spark, model_path)
 
 # COMMAND ----------
 
@@ -102,10 +104,20 @@ predict = mlflow.pyfunc.spark_udf(<FILL_IN>)
 
 # COMMAND ----------
 
-# TODO
-
 features = X_train.columns
-display(spark_df.withColumn("prediction", <FILL_IN>))
+display(spark_df.withColumn("prediction", predict(*features)))
+
+# COMMAND ----------
+
+import mlflow
+from pyspark.sql.functions import struct, col
+logged_model = f'runs:/{run.info.run_id}/model'
+
+# Load model as Spark UDF. Override result_type if model does not return double values.
+loaded_model = mlflow.pyfunc.spark_udf(spark, model_uri=logged_model, result_type='double')
+
+# Predict on a Spark DataFrame.
+display(spark.createDataFrame(df).withColumn('predictions',  loaded_model(struct(*map(col, df.columns)))))
 
 # COMMAND ----------
 
