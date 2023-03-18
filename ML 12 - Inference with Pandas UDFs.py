@@ -164,6 +164,11 @@ display(spark_df.mapInPandas(predict, """`host_total_listings_count` DOUBLE,`nei
 
 # COMMAND ----------
 
+schema = spark_df.withColumn("prediction", lit(None).cast(DoubleType())).schema
+print(schema)
+
+# COMMAND ----------
+
 from pyspark.sql.functions import lit
 from pyspark.sql.types import DoubleType
 
